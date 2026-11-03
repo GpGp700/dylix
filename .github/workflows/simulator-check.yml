@@ -1,0 +1,52 @@
+name: Arabic Simulator Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - simtest
+
+jobs:
+  simulator:
+    runs-on: macos-14
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Host architecture
+        run: uname -m; xcodebuild -version
+
+      - name: Install Rust targets
+        run: rustup target add aarch64-apple-ios x86_64-apple-ios
+
+      - name: Fetch pinned toolchain
+        run: python3 scripts/fetch_toolchain.py
+
+      - name: Build simulator app
+        run: python3 scripts/build.py --simulator
+
+      - name: Launch in Arabic and screenshot
+        run: |
+          set -x
+          UDID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for v in d.values() for x in v if x.get("isAvailable") and "iPhone" in x["name"]))')
+          echo "UDID=$UDID"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/simulator/TheosMobileCompiler.app
+          xcrun simctl launch "$UDID" com.xuegao.theosmobilecompiler -DylixArabic
+          sleep 10
+          xcrun simctl io "$UDID" screenshot arabic-home.png
+          xcrun simctl spawn "$UDID" log show --last 3m --style compact --predicate 'process == "TheosMobileCompiler"' > simulator.log || true
+          ls -lh arabic-home.png simulator.log
+
+      - name: Upload screenshot and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arabic-simulator-check
+          path: |
+            arabic-home.png
+            simulator.log
+          if-no-files-found: warn
+          retention-days: 7
