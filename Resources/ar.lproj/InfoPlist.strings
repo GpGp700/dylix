@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Dylix";
+"CFBundleName" = "Dylix";
+"NSCameraUsageDescription" = "التقط صورًا لاستخدامها كمرفقات مرجعية ترسلها إلى النموذج.";
+"NSLocalNetworkUsageDescription" = "عند تفعيل مساحة العمل البعيدة عبر الشبكة المحلية أو إعداد خدمة AI محلية، اسمح للأجهزة المقترنة على شبكة Wi-Fi نفسها بالوصول.";

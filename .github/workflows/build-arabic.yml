@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-14
     timeout-minutes: 180
     steps:
       - name: Checkout
@@ -16,6 +16,7 @@ jobs:
 
       - name: Show toolchain
         run: |
+          ls -1 /Applications | grep -i '^Xcode' || true
           xcodebuild -version
           xcrun --sdk iphoneos --show-sdk-path
           python3 --version

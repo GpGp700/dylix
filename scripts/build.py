@@ -77,6 +77,9 @@ if args.simulator:
 for resource in resources:
     shutil.copytree(ROOT / 'Resources' / resource, app / resource, dirs_exist_ok=True,
                     ignore=shutil.ignore_patterns('.git', '*.bundle', '*.dylib', '*.a', '*.o'))
+# Arabic runtime translation table and native localization metadata.
+shutil.copyfile(ROOT / 'Resources/Arabic.plist', app / 'Arabic.plist')
+shutil.copytree(ROOT / 'Resources/ar.lproj', app / 'ar.lproj', dirs_exist_ok=True)
 if args.profile:
     shutil.copy2(args.profile, app / 'embedded.mobileprovision')
 # Precompressed offline editor assets reduce LAN transfer latency.
@@ -87,7 +90,7 @@ for asset in (app / 'RemoteWeb' / 'monaco').rglob('*'):
 info = {
     'CFBundleExecutable': 'TheosMobileCompiler', 'CFBundleIdentifier': 'com.xuegao.theosmobilecompiler',
     'CFBundleName': 'Dylix', 'CFBundleDisplayName': 'Dylix',
-    'CFBundleDevelopmentRegion': 'zh-Hans', 'CFBundleLocalizations': ['zh-Hans', 'en'],
+    'CFBundleDevelopmentRegion': 'zh-Hans', 'CFBundleLocalizations': ['zh-Hans', 'en', 'ar'],
     'NSCameraUsageDescription': '拍摄照片作为您选择发送给模型的参考附件。', 'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': '1.0.7', 'CFBundleVersion': '160',
     'CFBundleDocumentTypes': [{'CFBundleTypeName':'Dylix Files','CFBundleTypeRole':'Editor','LSHandlerRank':'Alternate','LSItemContentTypes':['public.data','public.archive','public.source-code']}],
     'CFBundleURLTypes': [{'CFBundleURLName':'Dylix Incoming','CFBundleURLSchemes':['dylix', 'tweakforge']}],
@@ -148,7 +151,7 @@ cmd = ['xcrun', '--sdk', sdk, 'clang', '-arch', arch, '-isysroot', sysroot,
        '-fobjc-arc', '-fmodules', '-I' + str(ROOT / 'Vendor/libgit2/include'), '-framework', 'Network', '-framework', 'CoreImage', '-weak_framework', 'BackgroundTasks', '-framework', 'AVFoundation', '-framework', 'UserNotifications', '-framework', 'Security', '-framework', 'CoreFoundation', '-liconv', '-framework', 'UIKit', '-framework', 'CoreGraphics', '-framework', 'QuartzCore', '-framework', 'Foundation', '-framework', 'UniformTypeIdentifiers', '-framework', 'WebKit', '-framework', 'JavaScriptCore', '-larchive',
        '-F' + str(frameworks), '-framework', 'ios_system',
        '-Wl,-needed_framework,libLLVM',
-       '-Wl,-rpath,@executable_path/Frameworks', str(ROOT / 'App/main.m'), str(ROOT / 'App/RuntimeDiagnostics.m'), str(ROOT / 'App/ArchiveImport.m'), str(ROOT / 'App/TheosMakefile.m'), str(ROOT / 'App/DebPackage.m'), str(ROOT / 'App/OutputNaming.m'), str(ROOT / 'App/CompatibilityRepair.m'), str(ROOT / 'App/Studio.m'), str(ROOT / 'App/StorageSpace.m'), str(ROOT / 'App/ProjectSafety.m'), str(ROOT / 'App/ProjectTrash.m'), str(ROOT / 'App/GlassSupport.m'), str(ROOT / 'App/GitService.m'), str(ROOT / 'App/GitUI.m'), str(ROOT / 'App/GitHubRepositories.m'), str(ROOT / 'App/GitPATGuide.m'), str(ROOT / 'App/LinkSupport.m'), str(ROOT / 'App/HelpArticle.m'), str(ROOT / 'App/GitAutomation.m'), str(ROOT / 'App/GitDiffView.m'), str(gitlib), str(ROOT / 'Vendor/MBProgressHUD/MBProgressHUD.m'), '-o', str(app / 'TheosMobileCompiler')]
+       '-Wl,-rpath,@executable_path/Frameworks', str(ROOT / 'App/main.m'), str(ROOT / 'App/RuntimeDiagnostics.m'), str(ROOT / 'App/ArchiveImport.m'), str(ROOT / 'App/TheosMakefile.m'), str(ROOT / 'App/DebPackage.m'), str(ROOT / 'App/OutputNaming.m'), str(ROOT / 'App/CompatibilityRepair.m'), str(ROOT / 'App/Localization/TFLocalization.m'), str(ROOT / 'App/Studio.m'), str(ROOT / 'App/StorageSpace.m'), str(ROOT / 'App/ProjectSafety.m'), str(ROOT / 'App/ProjectTrash.m'), str(ROOT / 'App/GlassSupport.m'), str(ROOT / 'App/GitService.m'), str(ROOT / 'App/GitUI.m'), str(ROOT / 'App/GitHubRepositories.m'), str(ROOT / 'App/GitPATGuide.m'), str(ROOT / 'App/LinkSupport.m'), str(ROOT / 'App/HelpArticle.m'), str(ROOT / 'App/GitAutomation.m'), str(ROOT / 'App/GitDiffView.m'), str(gitlib), str(ROOT / 'Vendor/MBProgressHUD/MBProgressHUD.m'), '-o', str(app / 'TheosMobileCompiler')]
 cmd.extend(str(p) for p in sorted((ROOT / 'App/AI').rglob('*.m')))
 cmd.extend(str(p) for p in sorted((ROOT / 'App/Remote').glob('*.m')))
 cmd.append(str(ROOT / 'App/SDKResources.m'))
@@ -182,16 +185,19 @@ share_info = {
  'CFBundleName':'TweakForgeShare','CFBundleDisplayName':'Dylix','CFBundlePackageType':'XPC!',
  'CFBundleShortVersionString':'1.0.7','CFBundleVersion':info['CFBundleVersion'],
  'MinimumOSVersion':'15.0','UIDeviceFamily':[1,2],
+ 'CFBundleLocalizations':['zh-Hans','en','ar'],
  'CFBundleSupportedPlatforms':info['CFBundleSupportedPlatforms'],
  'NSExtension':{'NSExtensionPointIdentifier':'com.apple.share-services',
  'NSExtensionPrincipalClass':'ShareViewController',
  'NSExtensionAttributes':{'NSExtensionActivationRule':{'NSExtensionActivationSupportsFileWithMaxCount':20}}},
 }
 (share / 'Info.plist').write_bytes(plistlib.dumps(share_info))
+shutil.copyfile(ROOT / 'Resources/Arabic.plist', share / 'Arabic.plist')
+shutil.copytree(ROOT / 'Resources/ar.lproj', share / 'ar.lproj', dirs_exist_ok=True)
 share_cmd=['xcrun','--sdk',sdk,'clang','-arch',arch,'-isysroot',sysroot,
  '-mios-simulator-version-min=15.0' if args.simulator else '-miphoneos-version-min=15.0',
  '-fobjc-arc','-fapplication-extension','-framework','UIKit','-framework','Foundation','-framework','UniformTypeIdentifiers',
- '-Wl,-e,_NSExtensionMain',str(ROOT / 'ShareExtension/ShareViewController.m'),str(ROOT / 'ShareExtension/TFShareLauncher.m'),str(ROOT / 'App/Incoming/TFShareTransfer.m'),str(ROOT / 'App/Incoming/TFShareGroups.m'),'-o',str(share / 'TweakForgeShare')]
+ '-Wl,-e,_NSExtensionMain',str(ROOT / 'ShareExtension/ShareViewController.m'),str(ROOT / 'ShareExtension/TFShareLauncher.m'),str(ROOT / 'App/Incoming/TFShareTransfer.m'),str(ROOT / 'App/Incoming/TFShareGroups.m'),str(ROOT / 'App/Localization/TFLocalization.m'),'-o',str(share / 'TweakForgeShare')]
 if args.sdk_root:
     share_cmd.append('-F' + str(pathlib.Path(sysroot) / 'System/Library/SubFrameworks'))
 if args.share_profile:
