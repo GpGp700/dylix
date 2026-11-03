@@ -9,7 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo linux-ok
-  mac:
+  mac15:
     runs-on: macos-15
     steps:
-      - run: echo mac-ok
+      - run: echo mac15-ok
+  mac14:
+    runs-on: macos-14
+    steps:
+      - run: echo mac14-ok
+  mac13:
+    runs-on: macos-13
+    steps:
+      - run: echo mac13-ok
+  maclatest:
+    runs-on: macos-latest
+    steps:
+      - run: echo maclatest-ok
