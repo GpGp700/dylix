@@ -23,6 +23,18 @@ jobs:
       - name: Fetch pinned toolchain
         run: python3 scripts/fetch_toolchain.py
 
+      - name: Allow iOS 26-only symbols in the iOS 17 simulator link
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/build.py')
+          source = path.read_text()
+          marker = "cmd.extend([str(classdumplib), '-framework', 'PhotosUI', '-framework', 'ImageIO'])"
+          assert marker in source
+          source = source.replace(marker, marker + "\nif args.simulator:\n    cmd.extend(['-Wl,-undefined,dynamic_lookup'])")
+          path.write_text(source)
+          PY
+
       - name: Build simulator app
         run: python3 scripts/build.py --simulator
 
