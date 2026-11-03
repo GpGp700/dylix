@@ -241,15 +241,36 @@ static void TFSwizzleClass(Class type, SEL original, SEL replacement) {
 }
 @end
 
+static NSAttributedString *TFLocalizedAttributedString(NSAttributedString *text) {
+    if (!TFIsArabic || text.length == 0 || !TFHasHan(text.string)) return text;
+    // Attributed content is also used for streaming AI replies and rich code
+    // blocks. Only exact catalog matches are translated here, so a model reply
+    // is never mistaken for a format template.
+    NSString *translated = TFTranslationTable[text.string];
+    if (!translated) {
+        NSString *trimmed = [text.string stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+        if (trimmed.length && ![trimmed isEqualToString:text.string]) translated = TFTranslationTable[trimmed];
+    }
+    if (!translated || [translated isEqualToString:text.string]) return text;
+    NSDictionary *attributes = [text attributesAtIndex:0 effectiveRange:NULL];
+    return [[NSAttributedString alloc] initWithString:translated attributes:attributes];
+}
+
 @implementation UILabel (TFArabic)
 - (void)tf_setText:(NSString *)text {
     [self tf_setText:TFLocalized(text)];
+}
+- (void)tf_setAttributedText:(NSAttributedString *)text {
+    [self tf_setAttributedText:TFLocalizedAttributedString(text)];
 }
 @end
 
 @implementation UIButton (TFArabic)
 - (void)tf_setTitle:(NSString *)title forState:(UIControlState)state {
     [self tf_setTitle:TFLocalized(title) forState:state];
+}
+- (void)tf_setAttributedTitle:(NSAttributedString *)title forState:(UIControlState)state {
+    [self tf_setAttributedTitle:TFLocalizedAttributedString(title) forState:state];
 }
 @end
 
@@ -378,7 +399,9 @@ void TFLocalizationInstall(void) {
         TFSwizzleInstance(UIWindow.class, @selector(setRootViewController:), @selector(tf_setRootViewController:));
         TFSwizzleInstance(UIWindow.class, @selector(makeKeyAndVisible), @selector(tf_makeKeyAndVisible));
         TFSwizzleInstance(UILabel.class, @selector(setText:), @selector(tf_setText:));
+        TFSwizzleInstance(UILabel.class, @selector(setAttributedText:), @selector(tf_setAttributedText:));
         TFSwizzleInstance(UIButton.class, @selector(setTitle:forState:), @selector(tf_setTitle:forState:));
+        TFSwizzleInstance(UIButton.class, @selector(setAttributedTitle:forState:), @selector(tf_setAttributedTitle:forState:));
         TFSwizzleInstance(UITextField.class, @selector(setPlaceholder:), @selector(tf_setPlaceholder:));
         TFSwizzleInstance(UISearchBar.class, @selector(setPlaceholder:), @selector(tf_setPlaceholder:));
         TFSwizzleInstance(UISearchBar.class, @selector(setPrompt:), @selector(tf_setPrompt:));
