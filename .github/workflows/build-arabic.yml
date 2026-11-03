@@ -1,0 +1,46 @@
+name: Build Arabic IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - arabic
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+          python3 --version
+          cmake --version | head -n 1
+          rustc --version
+          cargo --version
+
+      - name: Install Rust targets
+        run: |
+          rustup target add aarch64-apple-ios x86_64-apple-ios
+
+      - name: Fetch pinned toolchain
+        run: python3 scripts/fetch_toolchain.py
+
+      - name: Build unsigned IPA
+        run: python3 scripts/build.py --sdk-root LocalSDKs/iPhoneOS26.0.sdk
+
+      - name: List output
+        if: always()
+        run: ls -lh build/*.ipa || true
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dylix-1.0.7-arabic-unsigned
+          path: build/*.ipa
+          if-no-files-found: error
+          retention-days: 14
