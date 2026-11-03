@@ -311,12 +311,21 @@ static NSAttributedString *TFLocalizedAttributedString(NSAttributedString *text)
 - (instancetype)tf_initWithTitle:(NSString *)title style:(UIBarButtonItemStyle)style target:(id)target action:(SEL)action {
     return [self tf_initWithTitle:TFLocalized(title) style:style target:target action:action];
 }
+- (instancetype)tf_initWithTitle:(NSString *)title menu:(UIMenu *)menu {
+    return [self tf_initWithTitle:TFLocalized(title) menu:menu];
+}
+- (instancetype)tf_initWithTitle:(NSString *)title image:(UIImage *)image target:(id)target action:(SEL)action menu:(UIMenu *)menu {
+    return [self tf_initWithTitle:TFLocalized(title) image:image target:target action:action menu:menu];
+}
 - (void)tf_setTitle:(NSString *)title {
     [self tf_setTitle:TFLocalized(title)];
 }
 @end
 
 @implementation UITabBarItem (TFArabic)
+- (instancetype)tf_initWithTitle:(NSString *)title image:(UIImage *)image {
+    return [self tf_initWithTitle:TFLocalized(title) image:image];
+}
 - (instancetype)tf_initWithTitle:(NSString *)title image:(UIImage *)image tag:(NSInteger)tag {
     return [self tf_initWithTitle:TFLocalized(title) image:image tag:tag];
 }
@@ -410,7 +419,10 @@ void TFLocalizationInstall(void) {
         TFSwizzleInstance(UINavigationItem.class, @selector(setPrompt:), @selector(tf_setPrompt:));
         TFSwizzleInstance(UINavigationItem.class, @selector(setBackButtonTitle:), @selector(tf_setBackButtonTitle:));
         TFSwizzleInstance(UIBarButtonItem.class, @selector(initWithTitle:style:target:action:), @selector(tf_initWithTitle:style:target:action:));
+        TFSwizzleInstance(UIBarButtonItem.class, @selector(initWithTitle:menu:), @selector(tf_initWithTitle:menu:));
+        TFSwizzleInstance(UIBarButtonItem.class, @selector(initWithTitle:image:target:action:menu:), @selector(tf_initWithTitle:image:target:action:menu:));
         TFSwizzleInstance(UIBarButtonItem.class, @selector(setTitle:), @selector(tf_setTitle:));
+        TFSwizzleInstance(UITabBarItem.class, @selector(initWithTitle:image:), @selector(tf_initWithTitle:image:));
         TFSwizzleInstance(UITabBarItem.class, @selector(initWithTitle:image:tag:), @selector(tf_initWithTitle:image:tag:));
         TFSwizzleInstance(UITabBarItem.class, @selector(initWithTitle:image:selectedImage:), @selector(tf_initWithTitle:image:selectedImage:));
         TFSwizzleInstance(UITabBarItem.class, @selector(setTitle:), @selector(tf_setTitle:));
