@@ -1,6 +1,9 @@
 name: Runner Probe
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - probe
 jobs:
   linux:
     runs-on: ubuntu-latest
